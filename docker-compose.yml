@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ttsql_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${APP_DB_NAME:-platform_db}
+      POSTGRES_USER: ${APP_DB_USER:-platform_user}
+      POSTGRES_PASSWORD: ${APP_DB_PASSWORD:-platform_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${APP_DB_USER:-platform_user} -d ${APP_DB_NAME:-platform_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # A sample "customer" database you can connect the platform to,
+  # so you have something to test Text-to-SQL against immediately.
+  sample_customer_db:
+    image: postgres:16
+    container_name: ttsql_sample_customer_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sample_company
+      POSTGRES_USER: sample_user
+      POSTGRES_PASSWORD: sample_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - sample_customer_data:/var/lib/postgresql/data
+      - ./scripts/sample_customer_data.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sample_user -d sample_company"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: ttsql_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_DB_HOST: postgres
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./storage/files:/app/storage/files
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["/app/entrypoint.sh"]
+
+volumes:
+  pgdata:
+  sample_customer_data:
