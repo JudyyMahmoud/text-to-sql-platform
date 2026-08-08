@@ -1,3 +1,7 @@
+#Demo
+https://drive.google.com/drive/folders/174B-gneYAb9_aKVaCdkAGha0rCx_ke7y?usp=sharing
+
+
 # Multi-Tenant Text-to-SQL and Document Chat Platform
 
 A secure backend that lets authenticated users:
@@ -311,3 +315,7 @@ needs no changes.
   layer's SQLGlot validation.
 - `CORSMiddleware` is currently wide open (`allow_origins=["*"]`) for local development —
   restrict this to your real frontend origin before deploying.
+
+
+
+
